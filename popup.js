@@ -228,13 +228,34 @@ $("btn-remove").onclick = async () => {
 /* ---------- todo ---------- */
 const saveTodos = () => chrome.storage.local.set({ todos });
 
+function moveTodo(from, to) {
+  if (to < 0 || to >= todos.length || from === to) return;
+  const [item] = todos.splice(from, 1);
+  todos.splice(to, 0, item);
+  saveTodos();
+  renderTodos();
+  const grip = document.querySelector(`.todo-row[data-id="${item.id}"] .grip`);
+  if (grip) grip.focus();
+}
+
+let dragId = null;
+function clearDropMarks() {
+  document.querySelectorAll(".todo-row").forEach((r) =>
+    r.classList.remove("drop-before", "drop-after", "dragging"));
+}
+
 function renderTodos() {
   const list = $("todo-list");
   list.innerHTML = "";
-  todos.forEach((t) => {
+  todos.forEach((t, i) => {
     const li = document.createElement("li");
     li.className = "todo-row" + (t.done ? " done" : "");
+    li.dataset.id = t.id;
+    li.draggable = true;
     li.innerHTML = `
+      <button class="grip" aria-label="Reorder: drag, or press Up and Down arrow keys" title="Drag to reorder">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+      </button>
       <input type="checkbox" aria-label="Mark done">
       <span class="t"></span>
       <button class="x" aria-label="Delete todo" title="Delete">×</button>`;
@@ -243,6 +264,45 @@ function renderTodos() {
     cb.checked = t.done;
     cb.onchange = () => { t.done = cb.checked; saveTodos(); renderTodos(); };
     li.querySelector(".x").onclick = () => { todos = todos.filter((x) => x.id !== t.id); saveTodos(); renderTodos(); };
+
+    // keyboard reordering
+    li.querySelector(".grip").onkeydown = (e) => {
+      if (e.key === "ArrowUp") { e.preventDefault(); moveTodo(i, i - 1); }
+      if (e.key === "ArrowDown") { e.preventDefault(); moveTodo(i, i + 1); }
+    };
+
+    // drag and drop reordering
+    li.ondragstart = (e) => {
+      dragId = t.id;
+      li.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", t.id);
+    };
+    li.ondragover = (e) => {
+      if (!dragId || dragId === t.id) return;
+      e.preventDefault();
+      const r = li.getBoundingClientRect();
+      const after = e.clientY > r.top + r.height / 2;
+      li.classList.toggle("drop-after", after);
+      li.classList.toggle("drop-before", !after);
+    };
+    li.ondragleave = () => li.classList.remove("drop-before", "drop-after");
+    li.ondrop = (e) => {
+      e.preventDefault();
+      if (!dragId || dragId === t.id) return;
+      const after = li.classList.contains("drop-after");
+      const from = todos.findIndex((x) => x.id === dragId);
+      const [item] = todos.splice(from, 1);
+      let to = todos.findIndex((x) => x.id === t.id);
+      if (after) to++;
+      todos.splice(to, 0, item);
+      dragId = null;
+      clearDropMarks();
+      saveTodos();
+      renderTodos();
+    };
+    li.ondragend = () => { dragId = null; clearDropMarks(); };
+
     list.appendChild(li);
   });
   const left = todos.filter((t) => !t.done).length;

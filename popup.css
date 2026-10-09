@@ -96,6 +96,13 @@ textarea { resize: vertical; min-height: 36px; }
 .todo-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex: none; }
 .todo-row .t { flex: 1; word-break: break-word; }
 .todo-row.done .t { color: var(--muted); text-decoration: line-through; }
+.todo-row .grip { flex: none; display: grid; place-items: center; width: 18px; height: 26px; padding: 0; background: none; border: 0; border-radius: 6px; color: var(--muted); cursor: grab; }
+.todo-row .grip:hover { color: var(--ink); background: var(--accent-soft); }
+.todo-row .grip:active { cursor: grabbing; }
+.todo-row .grip svg { width: 16px; height: 16px; fill: currentColor; }
+.todo-row.dragging { opacity: .45; }
+.todo-row.drop-before { box-shadow: inset 0 2px 0 var(--accent); }
+.todo-row.drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
 .todo-row .x { background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
 .todo-row .x:hover { color: var(--danger); background: var(--accent-soft); }
 
