@@ -14,14 +14,16 @@ let savedNote = "";
 
 /* ---------- storage ---------- */
 async function load() {
-  const data = await chrome.storage.local.get(["fields", "schedule", "todos", "note", "lastTab"]);
+  const data = await chrome.storage.local.get(["fields", "schedule", "todos", "note", "lastTab", "mail"]);
   fields = data.fields || DEFAULT_FIELDS;
   todos = data.todos || [];
+  mail = data.mail || [];
   savedNote = data.note || "";
   $("note").value = savedNote;
   renderList();
   renderSchedule(data.schedule || null);
   renderTodos();
+  renderMail();
   showTab(data.lastTab || "details");
 }
 
@@ -344,5 +346,100 @@ $("note").onkeydown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); $("note-save").click(); }
 };
 window.addEventListener("pagehide", () => { if ($("note").value !== savedNote) saveNote(); });
+
+/* ---------- email accounts ---------- */
+let mail = [];
+let mailDraft = [];
+let mailEditing = false;
+
+// Accepts an email address or a Gmail account number. Returns null if invalid.
+function mailUrl(account) {
+  const a = (account || "").trim();
+  if (/^\d{1,3}$/.test(a)) return `https://mail.google.com/mail/u/${a}/`;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a)) return `https://mail.google.com/mail/?authuser=${encodeURIComponent(a)}`;
+  return null;
+}
+const openMail = (account) => {
+  const url = mailUrl(account);
+  if (url) chrome.tabs.create({ url });
+};
+
+function renderMail() {
+  const list = $("mail-list");
+  list.innerHTML = "";
+  $("mail-toolbar-view").hidden = mailEditing || !mail.length;
+  $("mail-toolbar-edit").hidden = !mailEditing;
+  $("mail-hint").hidden = !mailEditing;
+  $("mail-empty").hidden = mailEditing || mail.length > 0;
+
+  if (mailEditing) {
+    mailDraft.forEach((m, i) => {
+      const li = document.createElement("li");
+      li.className = "edit-row";
+      li.innerHTML = `
+        <div class="top-line">
+          <input type="text" class="lbl" aria-label="Label" placeholder="Label (e.g. Work, Uni)" maxlength="40">
+          <button class="btn danger del" aria-label="Delete account">Delete</button>
+        </div>
+        <input type="text" class="acc" aria-label="Email or account number" placeholder="Email address or number (e.g. 5)" maxlength="120">`;
+      const lbl = li.querySelector(".lbl");
+      const acc = li.querySelector(".acc");
+      lbl.value = m.label;
+      acc.value = m.account;
+      lbl.oninput = () => (mailDraft[i].label = lbl.value);
+      acc.oninput = () => (mailDraft[i].account = acc.value);
+      li.querySelector(".del").onclick = () => { mailDraft.splice(i, 1); renderMail(); };
+      list.appendChild(li);
+    });
+    return;
+  }
+
+  mail.forEach((m) => {
+    const li = document.createElement("li");
+    li.className = "row";
+    li.tabIndex = 0;
+    li.innerHTML = `
+      <span class="avatar"></span>
+      <div class="text"><div class="value"></div><div class="label"></div></div>
+      <button class="btn insert">Open</button>`;
+    const name = m.label || m.account;
+    li.querySelector(".avatar").textContent = name.trim().charAt(0).toUpperCase() || "?";
+    li.querySelector(".value").textContent = name;
+    li.querySelector(".label").textContent = /^\d+$/.test(m.account) ? `Gmail account #${m.account}` : m.account;
+    li.onclick = () => openMail(m.account);
+    li.onkeydown = (e) => { if (e.key === "Enter") openMail(m.account); };
+    list.appendChild(li);
+  });
+}
+
+function startMailEdit(addBlank) {
+  mailEditing = true;
+  mailDraft = mail.map((m) => ({ ...m }));
+  if (addBlank || !mailDraft.length) mailDraft.push({ id: "m" + Date.now(), label: "", account: "" });
+  renderMail();
+  const rows = $("mail-list").querySelectorAll(".lbl");
+  if (addBlank && rows.length) rows[rows.length - 1].focus();
+}
+$("mail-edit").onclick = () => startMailEdit(false);
+$("mail-empty-add").onclick = () => startMailEdit(true);
+$("mail-add").onclick = () => {
+  mailDraft.push({ id: "m" + Date.now(), label: "", account: "" });
+  renderMail();
+  const rows = $("mail-list").querySelectorAll(".lbl");
+  rows[rows.length - 1].focus();
+};
+$("mail-cancel").onclick = () => { mailEditing = false; renderMail(); };
+$("mail-save").onclick = async () => {
+  const filled = mailDraft.filter((m) => m.label.trim() || m.account.trim());
+  if (filled.some((m) => !mailUrl(m.account))) {
+    toast("Use an email address or a number");
+    return;
+  }
+  mail = filled.map((m) => ({ ...m, label: m.label.trim(), account: m.account.trim() }));
+  await chrome.storage.local.set({ mail });
+  mailEditing = false;
+  renderMail();
+  toast("Saved");
+};
 
 load();

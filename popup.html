@@ -32,6 +32,27 @@
         <ul id="list" class="card-list"></ul>
       </section>
 
+      <!-- EMAIL -->
+      <section id="panel-email" data-panel="email" hidden>
+        <div class="toolbar" id="mail-toolbar-view" hidden>
+          <span class="hint">Open any Gmail account in one click.</span>
+          <span class="spacer"></span>
+          <button id="mail-edit" class="btn">Edit</button>
+        </div>
+        <div class="toolbar" id="mail-toolbar-edit" hidden>
+          <button id="mail-add" class="btn">+ Add account</button>
+          <span class="spacer"></span>
+          <button id="mail-cancel" class="btn">Cancel</button>
+          <button id="mail-save" class="btn primary">Save</button>
+        </div>
+        <p class="hint" id="mail-hint" hidden>Enter an email address, or the account number from your Gmail link (the 5 in <b>mail.google.com/mail/u/5/</b>). The email address is more reliable, because numbers can change if you sign out and in.</p>
+        <ul id="mail-list" class="card-list"></ul>
+        <div id="mail-empty" class="empty" hidden>
+          <p>No Gmail accounts yet.<br>Add them once, then open any inbox in one click.</p>
+          <button id="mail-empty-add" class="btn primary">Add account</button>
+        </div>
+      </section>
+
       <!-- SCHEDULE -->
       <section id="panel-schedule" data-panel="schedule" hidden>
         <div id="schedule-empty" class="empty">
@@ -82,6 +103,10 @@
       <button class="tab active" role="tab" data-tab="details" aria-selected="true">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span>Details</span>
+      </button>
+      <button class="tab" role="tab" data-tab="email" aria-selected="false">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>
+        <span>Email</span>
       </button>
       <button class="tab" role="tab" data-tab="schedule" aria-selected="false">
         <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>

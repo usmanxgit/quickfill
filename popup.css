@@ -123,3 +123,8 @@ textarea { resize: vertical; min-height: 36px; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (prefers-reduced-motion: reduce) { #toast, .tab svg { transition: none; } }
 [hidden] { display: none !important; }
+
+/* email tab */
+.toolbar .hint { margin: 0; }
+.avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 15px; }
+#mail-hint b { color: var(--ink); font-weight: 600; word-break: break-all; }
