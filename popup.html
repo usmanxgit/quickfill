@@ -12,7 +12,11 @@
         <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><path d="M9 17l5 5 9-11"/></svg>
         <span>QuickFill</span>
       </div>
-      <div id="top-actions"></div>
+      <div id="top-actions">
+        <button id="gear" class="gear" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+        </button>
+      </div>
     </header>
 
     <main>
@@ -96,6 +100,33 @@
           <span class="spacer"></span>
           <button id="note-save" class="btn primary">Save</button>
         </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="panel-settings" data-panel="settings" hidden>
+        <div class="set-head">
+          <button id="set-back" class="btn">← Back</button>
+          <h2>Settings</h2>
+        </div>
+        <div class="set-card">
+          <h3>Accent colour</h3>
+          <div class="swatches" id="swatches"></div>
+          <div class="custom">
+            <span id="hex-prev" class="hex-prev"></span>
+            <input type="text" id="hex" maxlength="7" placeholder="#2f5bea" aria-label="Custom colour hex code" spellcheck="false" autocomplete="off">
+            <span class="hint">Custom hex colour</span>
+          </div>
+        </div>
+        <div class="set-card">
+          <h3>Appearance</h3>
+          <div class="seg" id="seg">
+            <button data-mode="auto">Auto</button>
+            <button data-mode="light">Light</button>
+            <button data-mode="dark">Dark</button>
+          </div>
+        </div>
+        <button id="set-reset" class="btn">Reset to default</button>
+        <p class="hint" id="set-ver"></p>
       </section>
     </main>
 

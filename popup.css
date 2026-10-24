@@ -9,8 +9,19 @@
   --accent-ink: #ffffff;
   --danger: #d92d20;
 }
+:root[data-theme="dark"] {
+  --bg: #0e1420;
+  --panel: #172033;
+  --ink: #e8edf7;
+  --muted: #8b98b0;
+  --line: #26324a;
+  --accent: #7c9bff;
+  --accent-soft: #1f2b4d;
+  --accent-ink: #0b1020;
+  --danger: #ff7a70;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0e1420;
     --panel: #172033;
     --ink: #e8edf7;
@@ -128,3 +139,22 @@ textarea { resize: vertical; min-height: 36px; }
 .toolbar .hint { margin: 0; }
 .avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 15px; }
 #mail-hint b { color: var(--ink); font-weight: 600; word-break: break-all; }
+
+/* settings */
+.gear { width: 30px; height: 30px; display: grid; place-items: center; background: none; border: 0; border-radius: 8px; color: var(--muted); opacity: .6; cursor: pointer; }
+.gear:hover, .gear.on { opacity: 1; color: var(--ink); background: var(--accent-soft); }
+.gear svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.set-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.set-head h2 { margin: 0; font-size: 16px; }
+.set-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.set-card h3 { margin: 0 0 10px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+.sw { width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer; }
+.sw.sel { outline: 2px solid var(--ink); outline-offset: 2px; }
+.custom { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.custom input { width: 104px; font-family: ui-monospace, Consolas, monospace; }
+.custom .hint { margin: 0; }
+.hex-prev { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); flex: none; }
+.seg { display: flex; gap: 3px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+.seg button { flex: 1; padding: 6px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }

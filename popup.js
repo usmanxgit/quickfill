@@ -12,12 +12,41 @@ let editing = false;
 let todos = [];
 let savedNote = "";
 
+/* ---------- settings: theme ---------- */
+const DEFAULT_SETTINGS = { accent: "#2f5bea", mode: "auto" };
+let settings = { ...DEFAULT_SETTINGS };
+let currentTab = "details";
+let prevTab = "details";
+try { Object.assign(settings, JSON.parse(localStorage.getItem("qf-settings") || "{}")); } catch {}
+
+const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const rgb2hex = (a) => "#" + a.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+const mixHex = (a, b, t) => { const x = hex2rgb(a), y = hex2rgb(b); return rgb2hex(x.map((v, i) => v + (y[i] - v) * t)); };
+const luminance = (h) => {
+  const [r, g, b] = hex2rgb(h).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+function applyTheme() {
+  const root = document.documentElement;
+  const dark = settings.mode === "dark" ||
+    (settings.mode === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  if (settings.mode === "auto") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", settings.mode);
+  const acc = dark ? mixHex(settings.accent, "#ffffff", 0.3) : settings.accent;
+  root.style.setProperty("--accent", acc);
+  root.style.setProperty("--accent-ink", luminance(acc) > 0.4 ? "#0b1020" : "#ffffff");
+  root.style.setProperty("--accent-soft", mixHex(acc, dark ? "#172033" : "#ffffff", dark ? 0.78 : 0.88));
+}
+applyTheme();
+
 /* ---------- storage ---------- */
 async function load() {
-  const data = await chrome.storage.local.get(["fields", "schedule", "todos", "note", "lastTab", "mail"]);
+  const data = await chrome.storage.local.get(["fields", "schedule", "todos", "note", "lastTab", "mail", "settings"]);
   fields = data.fields || DEFAULT_FIELDS;
   todos = data.todos || [];
   mail = data.mail || [];
+  if (data.settings) { settings = { ...DEFAULT_SETTINGS, ...data.settings }; applyTheme(); }
+  renderSettings();
   savedNote = data.note || "";
   $("note").value = savedNote;
   renderList();
@@ -39,13 +68,16 @@ function toast(msg) {
 
 /* ---------- tabs ---------- */
 function showTab(name) {
+  if (name !== "settings") prevTab = name;
+  currentTab = name;
+  $("gear").classList.toggle("on", name === "settings");
   document.querySelectorAll("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== name));
   document.querySelectorAll(".tab").forEach((t) => {
     const on = t.dataset.tab === name;
     t.classList.toggle("active", on);
     t.setAttribute("aria-selected", on);
   });
-  chrome.storage.local.set({ lastTab: name });
+  if (name !== "settings") chrome.storage.local.set({ lastTab: name });
   if (name === "todo") $("todo-input").focus();
   if (name === "notes") $("note").focus();
 }
@@ -441,5 +473,45 @@ $("mail-save").onclick = async () => {
   renderMail();
   toast("Saved");
 };
+
+/* ---------- settings: panel ---------- */
+const SWATCHES = [["Blue", "#2f5bea"], ["Teal", "#0d9488"], ["Green", "#16a34a"], ["Orange", "#ea580c"],
+                  ["Pink", "#db2777"], ["Purple", "#7c3aed"], ["Red", "#dc2626"], ["Slate", "#475569"]];
+
+function renderSettings() {
+  const wrap = $("swatches");
+  wrap.innerHTML = "";
+  SWATCHES.forEach(([name, hex]) => {
+    const b = document.createElement("button");
+    b.className = "sw" + (settings.accent.toLowerCase() === hex ? " sel" : "");
+    b.style.background = hex;
+    b.title = name;
+    b.setAttribute("aria-label", name + " accent colour");
+    b.onclick = () => { settings.accent = hex; saveSettings(); };
+    wrap.appendChild(b);
+  });
+  $("hex-prev").style.background = settings.accent;
+  if (document.activeElement !== $("hex")) $("hex").value = settings.accent;
+  $("seg").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.mode === settings.mode));
+  $("set-ver").textContent = "QuickFill v" + chrome.runtime.getManifest().version;
+}
+
+async function saveSettings() {
+  try { localStorage.setItem("qf-settings", JSON.stringify(settings)); } catch {}
+  await chrome.storage.local.set({ settings });
+  applyTheme();
+  renderSettings();
+}
+
+$("hex").oninput = (e) => {
+  let v = e.target.value.trim();
+  if (/^[0-9a-f]{6}$/i.test(v)) v = "#" + v;
+  if (/^#[0-9a-f]{6}$/i.test(v)) { settings.accent = v.toLowerCase(); saveSettings(); }
+};
+$("hex").onblur = renderSettings;
+$("seg").querySelectorAll("button").forEach((b) => (b.onclick = () => { settings.mode = b.dataset.mode; saveSettings(); }));
+$("set-reset").onclick = () => { settings = { ...DEFAULT_SETTINGS }; saveSettings(); toast("Reset"); };
+$("gear").onclick = () => showTab(currentTab === "settings" ? prevTab : "settings");
+$("set-back").onclick = () => showTab(prevTab);
 
 load();
